@@ -1,0 +1,7 @@
+<Command>
+    <opt name="help"/>
+    	<d>vd</d>
+    	<d>vn</d>
+    	<d>--</d>
+    	<d>sample.txt</d>
+</Command>

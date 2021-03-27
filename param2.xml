@@ -1,0 +1,22 @@
+<Command>
+<!-- option-->
+    <opt name="need"/>
+	<d>Need Item1</d>
+    <opt name="vnum"/>
+	<!-- value-->
+    	<d>256</d>
+    <opt name="vden"/>
+    	<d>32</d>
+    <opt name="multi"/>
+    	<d>OS=Windows10</d>
+    	<d>OFFICE=2010</d>
+    	<d>CPU=AMD Ryzen5 1600AF</d>
+	<d>Visual Studio 2019</d>
+    <opt name="type"/>
+    	<d>France</d>
+    	<d>Italy</d>
+<!-- comment
+    <opt name="fol"/>
+    	<d>C:\CodeBlocks\sample</d>
+-->
+</Command>
