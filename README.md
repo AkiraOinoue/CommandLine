@@ -1,34 +1,34 @@
 # CommandLine</br>
 Command Line Processor</br>
-<<<CommandLineの概要>>></br>
+&lt;&lt;&lt;CommandLineの概要>>></br>
 #■c++のプログラムで容易にコマンドラインの情報を取得する事ができます。</br>
 ◆特徴</br>
 ○必須オプションと任意オプションを自動チェック</br>
 </br>
 ○指定オプションの値を型指定して取得可能</br>
-	 例）int i = cmd.param<int>("opt");</br>
+	 例）int i = cmd.param&lt;int&gt;("opt");</br>
 </br>
 ○オプションパラメータファイルに対応</br>
 	 コマンドラインの限界を超えるような長いオプション指定にも</br>
 	 簡単に対応可能。</br>
 	 cmd.options(パラメータファイルパス);</br>
 	 xml形式のファイルにオプションやパラメータを記述し、解析が可能</br>
-	 以下はフォーマット。<Command>～</Command>で挟む。</br>
+	 以下はフォーマット。&lt;Command>～&lt;/Command&gt;で挟む。</br>
 	 optタグのnameにオプション名を指定。</br>
-	 オプションパラメータは任意のタグ<file>値</file>などで指定可能。</br>
-	コメントとして<!-- ～ -->が使用できます。</br>
+	 オプションパラメータは任意のタグ&lt;file&gt;値&lt;/file&gt;などで指定可能。</br>
+	コメントとして&lt;!-- ～ -->が使用できます。</br>
 	&lt;Command&gt;</br>
-		<!-- option--></br>
-		<opt name="copy"/></br>
-			<opt name="from"/></br>
-				<file>france</file></br>
-			<opt name="to"/></br>
-				<file>japan</file></br>
-		<!-- comment --></br>
-		<opt name="type"/></br>
-			<file>Amereican</file></br>
-			<file>Canada</file></br>
-	</Command></br>
+		&lt;!-- option--></br>
+		&lt;opt name="copy"/></br>
+			&lt;opt name="from"/></br>
+				&lt;file&gt;france&lt;/file&gt;</br>
+			&lt;opt name="to"/></br>
+				&lt;file&gt;japan&lt;/file&gt;</br>
+		&lt;!-- comment --></br>
+		&lt;opt name="type"/></br>
+			&lt;file&gt;Amereican&lt;/file&gt;</br>
+			&lt;file&gt;Canada&lt;/file&gt;</br>
+	&lt;/Command&gt;</br>
 	※）Utf-8のエンコードファイルか半角英数文字だけのShift-JISのXMLファイルでないと正しく読めません。</br>
 </br>
 ○任意オプションの値省略時にデフォルト値を設定</br>
