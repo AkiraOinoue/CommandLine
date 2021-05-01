@@ -17,7 +17,7 @@ Command Line Processor</br>
 	 optタグのnameにオプション名を指定。</br>
 	 オプションパラメータは任意のタグ<file>値</file>などで指定可能。</br>
 	コメントとして<!-- ～ -->が使用できます。</br>
-	&ltCommand&gt</br>
+	&lt;Command&gt;</br>
 		<!-- option--></br>
 		<opt name="copy"/></br>
 			<opt name="from"/></br>
