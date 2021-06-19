@@ -117,8 +117,8 @@ CommandLine.lib(アーカイブファイル)をリンクします。
 ## ■開発環境
 Visual Studio 2019 C++/Windows10
 ## サンプルコード</br>
-<pre><code class="lang-C++">
-#include &lt;iostream&gt;
+```c++
+#include <iostream>
 /////////////////////////////////////////
 /* コマンドラインヘッダ */
 /////////////////////////////////////////
@@ -387,4 +387,4 @@ int main( const int agc, const char** agv )
     }
     return EXIT_SUCCESS;
 }
-</code></pre>
+```
