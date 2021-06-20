@@ -18,7 +18,7 @@
  optタグのnameにオプション名を指定。
  オプションパラメータは任意のタグ<file>値</file>などで指定可能。
  コメントとして<!-- ～ -->が使用できます。
- ```xml
+ 	```xml
 	<Command>
 		<!-- option-->
 		<opt name="copy"/>
@@ -31,7 +31,7 @@
 			<file>Amereican</file>
 			<file>Canada</file>
 	</Command>
-```
+	```
 	※）Utf-8のエンコードファイルか半角英数文字だけのShift-JISのXMLファイルでないと正しく読めません。
 ```
 ○任意オプションの値省略時にデフォルト値を設定
