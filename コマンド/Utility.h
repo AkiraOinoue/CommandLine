@@ -17,18 +17,32 @@ namespace locallib {
         char m_crstr;
         char m_ctstr;
     public:
-        StrReplace(){}
+        StrReplace():
+            m_crstr(NULL),
+            m_ctstr(NULL),
+            m_rstr(nullptr),
+            m_fstr(""),
+            m_tstr("")
+        {}
         // fstr=orginal string, rstr=replace string, tstr=to string
         StrReplace(std::string fstr, const char* rstr, std::string tstr):
+            m_crstr(NULL),
+            m_ctstr(NULL),
             m_fstr(fstr), m_rstr(rstr), m_tstr(tstr){}
         // fstr=orginal string, rstr=replace string, tstr=to string
         StrReplace(std::string fstr, std::string rstr, std::string tstr):
+            m_crstr(NULL),
+            m_ctstr(NULL),
             m_fstr(fstr), m_rstr(rstr.c_str()), m_tstr(tstr){}
         // this->m_fstr=orginal string, rstr=replace string, tstr=to string
         StrReplace(const char rstr, const char tstr):
+            m_rstr(nullptr),
             m_crstr(rstr), m_ctstr(tstr){}
         // fstr=orginal string, rstr=replace string, tstr=to string
         StrReplace(std::string fstr):
+            m_crstr(NULL),
+            m_ctstr(NULL),
+            m_rstr(nullptr),
             m_fstr(fstr){}
         // fstr=orginal string, rstr=replace string, tstr=to string
         void replace( std::string& fstr, const char* rstr, std::string tstr );

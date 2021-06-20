@@ -37,9 +37,33 @@ namespace locallib {
 		// コンストラクタ
 		///////////////////////////////////////////////////////
         CommandLine() throw();
+        ////////////////////////////////////////////////////////////////
+        /// <summary>
+        /// コマンドラインコンストラクタ
+        /// （コンソールプログラム用）
+        /// </summary>
+        /// <param name="agc">パラメータ個数</param>
+        /// <param name="agv">パラメータテーブル</param>
+        /// <param name="valid_flg">オプションなしの許可フラグ</param>
+        /// <param name="hlp_opt">ヘルプオプション文字列</param>
+        /// <returns>なし</returns>
         CommandLine(
-            const int,
-            const char*[],
+            const int agc,
+            const char* agv[],
+            bool valid_flg = false,
+            std::string hlp_opt = "help"
+        ) throw();
+        ////////////////////////////////////////////////////////////////
+        /// <summary>
+        /// コマンドラインコンストラクタ
+        /// （Windowsプログラム用）
+        /// </summary>
+        /// <param name="lpCmdLine">パラメータテーブル</param>
+        /// <param name="valid_flg">オプションなしの許可フラグ</param>
+        /// <param name="hlp_opt">ヘルプオプション文字列</param>
+        /// <returns>なし</returns>
+        CommandLine(
+            LPWSTR    lpCmdLine,
             bool valid_flg = false,
             std::string hlp_opt = "help"
         ) throw();
@@ -210,6 +234,12 @@ namespace locallib {
         bool is_number(void);
         // Usage表示
         virtual void usage( const char* );
+        ///////////////////////////////////////////////////
+        /// <summary>
+        /// Usageダイアログ表示
+        /// </summary>
+        /// <param name="">なし</param>
+        virtual void usageDlg(void);
         virtual void usage(void);
 //        This is free software; see the source for copying conditions.  There is NO
 //        warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
@@ -224,12 +254,29 @@ namespace locallib {
                 );
         // コマンドヘルプ情報登録
         virtual CommandLine& setCmdHelp( const char* key, const char* help );
+        //////////////////////////////////////////////////////////
+        /// <summary>
+        /// コマンドヘルプ情報出力（ダイアログ表示）
+        /// </summary>
+        /// <param name="key">オプション文字列</param>
+        /// <param name="help_str">ヘルプ表示文字列</param>
+        virtual void getCmdHelpDlg(
+            const char* key,
+            std::string& help_str
+        );
         // コマンドヘルプ情報出力
         virtual void getCmdHelp( const char* key );
         virtual void getCmdHelp( const std::string key );
         // コマンドライン文字列オリジナルデータ保存
         void setAgv(const int agc, const char* agv[]);
         void setAgv(int agc, char* agv[]);
+        /////////////////////////////////////////////////////////
+        /// <summary>
+        /// コマンドパラメータ変換
+        /// Windowsプログラム用
+        /// </summary>
+        /// <param name="lpCmdLine">コマンドパラメータ</param>
+        void setAgv(LPWSTR    lpCmdLine);
         // オプション情報取得
         virtual _T_OptionInfo   getOption( const char* key );
         // オプションキー検索
@@ -345,6 +392,12 @@ namespace locallib {
         }
         // オプションパラメータの有無
         virtual bool is_param( const char* );
+        ///////////////////////////////////////////////////////
+        /// <summary>
+        /// コマンドヘルプ（ダイアログ表示）
+        /// </summary>
+        /// <param name="key">オプション文字列</param>
+        virtual void cmd_helpDlg(const std::string);
         // コマンドヘルプ
         virtual void cmd_help(const std::string);
 		///////////////////////////////////////////////////////
@@ -456,6 +509,91 @@ namespace locallib {
             {
                 std::cout << c;
             }
+        }
+    };
+    //////////////////////////////////////////////////////////////////////
+    // ヘルプ情報作成テンプレート
+    // オプション文字(必須/任意): パラメータ（必須/任意/なし）[省略値=...] - 説明
+    //////////////////////////////////////////////////////////////////////
+    template <typename T1>
+    struct disp_usage_msg
+    {
+        std::string* m_usage_str;
+        CString opt_str = "";
+        std::string sepstr;
+        disp_usage_msg(
+            const char* cmd,
+            std::string sepval,
+            std::string* usage_str
+        )
+        {
+            // ヘルプ文字列
+            this->m_usage_str = usage_str;
+            // ヘルプ情報
+            this->sepstr = sepval;
+            *this->m_usage_str = "Usage: " + std::string(cmd) + " [opition]\n";
+        }
+        void operator()(T1 val)
+        {
+            opt_str.Format(
+                "%s%-10s",
+                this->sepstr.c_str(),
+                val.first.c_str()
+            );
+            *this->m_usage_str += this->opt_str.GetString();
+            //std::cout << this->sepstr << std::setw(10) << std::left << val.first;
+            *this->m_usage_str += (val.second.opt_need_flg & _NEEDP ? "(必須):" : "(任意):");
+            //std::cout << (val.second.opt_need_flg & _NEEDP ? "(必須):" : "(任意):");
+            *this->m_usage_str += " パラメータ";
+            //std::cout << " パラメータ";
+            std::string para;
+            std::string def_para = "";
+            if (val.second.param_flg & _NEEDP)
+            {
+                para = "(必須";
+                if (val.second.param_flg & _ULMTP)
+                {
+                    para += "+無制限)";
+                }
+                else
+                {
+                    para += ")";
+                }
+            }
+            else if (val.second.param_flg & _FREEP)
+            {
+                para = "(任意";
+                def_para = val.second.default_opt;
+                if (val.second.param_flg & _ULMTP)
+                {
+                    para += "+無制限)";
+                }
+                else
+                {
+                    para += ")";
+                }
+            }
+            else if (val.second.param_flg & _NONEP)
+            {
+                para = "(なし)";
+            }
+            *this->m_usage_str += para;
+            //std::cout << para;
+            if (val.second.param_flg & _FREEP)
+            {
+                if (def_para != "")
+                {
+                    *this->m_usage_str += "[省略値=" + val.second.default_opt + "]";
+                    //std::cout << "[省略値=" << val.second.default_opt << "]";
+                }
+                else
+                {
+                    *this->m_usage_str += "[省略値=なし]";
+                    //std::cout << "[省略値=なし]";
+                }
+            }
+            *this->m_usage_str += " - " + val.second.opt_desc + "\n";
+            //std::cout << " - " << val.second.opt_desc << std::endl;
         }
     };
     //////////////////////////////////////////////////////////////////////

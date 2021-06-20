@@ -1,6 +1,8 @@
 // ----------------------------------------------------------------------------
 // Copyright (C) 2019 davinci1958@docomonet.jp
 // ----------------------------------------------------------------------------
+#include <Windows.h>
+#include <shellapi.h>
 #include "CommandLine.h"
 #include "Utility.h"
 using namespace std;
@@ -12,6 +14,16 @@ CommandLine::CommandLine() throw()
 	this->valid_none_opt_flg = false;
 	this->m_help_option = "help";
 }
+////////////////////////////////////////////////////////////////
+/// <summary>
+/// コマンドラインコンストラクタ
+/// （コンソールプログラム用）
+/// </summary>
+/// <param name="agc">パラメータ個数</param>
+/// <param name="agv">パラメータテーブル</param>
+/// <param name="valid_flg">オプションなしの許可フラグ</param>
+/// <param name="hlp_opt">ヘルプオプション文字列</param>
+/// <returns>なし</returns>
 CommandLine::CommandLine(
     const int agc, 
     const char* vagv[], 
@@ -27,11 +39,76 @@ CommandLine::CommandLine(
     this->valid_none_opt_flg = valid_flg;
     this->m_help_option = hlp_opt;
 }
+////////////////////////////////////////////////////////////////
+/// <summary>
+/// コマンドラインコンストラクタ
+/// （Windowsプログラム用）
+/// </summary>
+/// <param name="lpCmdLine">パラメータテーブル</param>
+/// <param name="valid_flg">オプションなしの許可フラグ</param>
+/// <param name="hlp_opt">ヘルプオプション文字列</param>
+/// <returns>なし</returns>
+CommandLine::CommandLine(
+    LPWSTR    lpCmdLine,
+    bool valid_flg,
+    std::string hlp_opt
+) throw()
+{
+    this->m_idx = 0;
+    this->m_sep = OPTSEP;
+    this->m_agc = 0;
+    // lpCmdLineをchar *agv[]形式に変換
+    // Windowsアプリ用コマンドライン設定
+    this->setAgv(lpCmdLine);
+    this->valid_none_opt_flg = valid_flg;
+    this->m_help_option = hlp_opt;
+}
 CommandLine::~CommandLine() throw()
 {
     //dtor
     this->m_cmdline.clear();
     this->m_option.clear();
+}
+///////////////////////////////////////////////////
+/// <summary>
+/// Usageダイアログ表示
+/// </summary>
+/// <param name="">なし</param>
+void CommandLine::usageDlg(void)
+{
+    vector<_T_p_OptionType> mdisp(this->m_option.size());
+    // オプションのコピー
+    copy(
+        this->m_option.begin(),
+        this->m_option.end(),
+        mdisp.begin()
+    );
+    // オプションをm_idxでソート
+    stable_sort(
+        mdisp.begin(),
+        mdisp.end(),
+        Cmp_mdisp<_T_p_OptionType>()
+    );
+    // オプション文字(必須/任意): 引数（必須/任意）　- 意味
+    std::string usage_str = "";
+    disp_usage_msg <_T_p_OptionType>  disp_msg(
+        this->m_prgname.c_str(),
+        this->getSep(),
+        &usage_str
+    );
+    for_each(
+        mdisp.begin(),
+        mdisp.end(),
+        // disp_msgはmdispの要素を引数に繰り返し呼ばれる
+        disp_msg
+    );
+    // 使用方法をダイアログ表示
+    ::MessageBox(
+        nullptr,
+        usage_str.c_str(),
+        "使用方法",
+        MB_ICONINFORMATION
+    );
 }
 // Usage表示
 void CommandLine::usage( const char* cmd )
@@ -53,6 +130,7 @@ void CommandLine::usage( const char* cmd )
     for_each(
         mdisp.begin(), 
         mdisp.end(), 
+        // disp_usageはmdispの要素を引数に繰り返し呼ばれる
         disp_usage<_T_p_OptionType>(cmd, this->getSep())
     );
 }
@@ -74,6 +152,40 @@ void CommandLine::setAgv(const int agc, const char* agv[])
         this->m_agv.push_back(agv[ii]);
     }
 }
+/////////////////////////////////////////////////////////
+/// <summary>
+/// コマンドパラメータ変換
+/// Windowsプログラム用
+/// </summary>
+/// <param name="lpCmdLine">コマンドパラメータ</param>
+void CommandLine::setAgv(LPWSTR lpCmdLine)
+{
+    LPWSTR* szArglist;
+    int nArgs;
+
+    this->m_agv.clear();
+    szArglist = CommandLineToArgvW(GetCommandLineW(), &nArgs);
+    if (NULL == szArglist)
+    {
+        return;
+    }
+    else
+    {
+        // パラメータカウント
+        this->m_agc = nArgs;
+        // パラメータテーブルに格納
+        for (int i = 0; i < nArgs; i++)
+        {
+            // WからAに変換
+            CString wstr = szArglist[i];
+            this->m_agv.push_back(wstr.GetString());
+        }
+        // プログラム名
+        this->m_prgname = this->m_agv[0];
+    }
+    // Free memory allocated for CommandLineToArgvW arguments.
+    LocalFree(szArglist);
+}
 // コマンドヘルプ情報登録
 CommandLine& CommandLine::setCmdHelp( const char* key, const char* help )
 {
@@ -83,6 +195,36 @@ CommandLine& CommandLine::setCmdHelp( const char* key, const char* help )
     strhelp = StrReplace(strhelp)(REPSTR_MARK, this->getSep());
     this->m_cmd_help.insert(_T_p_CmdLineType(strkey, strhelp));
     return *this;
+}
+//////////////////////////////////////////////////////////
+/// <summary>
+/// コマンドヘルプ情報出力（ダイアログ表示）
+/// </summary>
+/// <param name="key">オプション文字列</param>
+/// <param name="help_str">ヘルプ表示文字列</param>
+void CommandLine::getCmdHelpDlg(
+    const char* key,
+    std::string& help_str
+)
+{
+    _T_mmap_CmdHelpType::iterator    it = this->m_cmd_help.begin();
+    bool flg = false;
+    for (; it != this->m_cmd_help.end();)
+    {
+        it = find_if(it, this->m_cmd_help.end(), CompKey<_T_p_CmdLineType>(key));
+        if ((it != this->m_cmd_help.end()))
+        {
+            help_str += it->second;
+            //cout << it->second << endl;
+            it++;
+            flg = true;
+        }
+    }
+    if (flg == false)
+    {
+        help_str = std::string(key) + " is no description.";
+        //cout << "is no description." << endl;
+    }
 }
 // コマンドヘルプ情報出力
 void CommandLine::getCmdHelp( const char* key )
@@ -107,6 +249,46 @@ void CommandLine::getCmdHelp( const char* key )
 void CommandLine::getCmdHelp( const std::string key )
 {
     this->getCmdHelp(key.c_str());
+}
+///////////////////////////////////////////////////////
+/// <summary>
+/// コマンドヘルプ（ダイアログ表示）
+/// </summary>
+/// <param name="key">オプション文字列</param>
+void CommandLine::cmd_helpDlg(const std::string key)
+{
+    std::string help_str = "";
+    CommandLine::_T_OptionInfo retv;
+    string keystr = key;
+    if (this->search(key.c_str()))
+    {
+        // 対応するオプションがあれば情報取得
+        retv = this->getOption(key.c_str());
+        keystr = retv.optstr;
+    }
+    else
+    {
+        keystr += " is not command.";
+        help_str = keystr;
+        ::MessageBox(
+            nullptr,
+            help_str.c_str(),
+            "",
+            MB_ICONINFORMATION
+        );
+        //cout << keystr << " is not command." << endl;
+        return;
+    }
+    keystr += " command format:";
+    help_str = keystr;
+    //cout << keystr << " command format:" << endl;
+    this->getCmdHelpDlg(key.c_str(), help_str);
+    ::MessageBox(
+        nullptr,
+        help_str.c_str(),
+        "コマンドオプションヘルプ",
+        MB_ICONINFORMATION
+    );
 }
 // コマンドヘルプ
 void CommandLine::cmd_help(const std::string key)
