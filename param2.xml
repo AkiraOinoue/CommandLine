@@ -11,10 +11,12 @@
     	<d>OS=Windows10</d>
     	<d>OFFICE=2010</d>
     	<d>CPU=AMD Ryzen5 1600AF</d>
-	<d>Visual Studio 2019</d>
+    	<d>GPU=nVIDIA GeForce GTX1650</d>
+	<d>DEV=Visual Studio 2019</d>
     <opt name="type"/>
     	<d>France</d>
     	<d>Italy</d>
+    	<d>Japan</d>
 <!-- comment
     <opt name="fol"/>
     	<d>C:\CodeBlocks\sample</d>
